@@ -1,5 +1,7 @@
 import 'dart:convert';
 
+import 'dart:io';
+
 class Consts {
   Consts._();
   static String API_URL = "http://192.168.1.69:5000";
@@ -79,5 +81,16 @@ class Consts {
   }
 
 
-  
+  static Future<bool> checkInternetConnection()async{
+    var flag = false;
+    try {
+      final connection = await InternetAddress.lookup('google.com');
+      if (connection.isNotEmpty && connection.length > 1) {
+        flag = true;
+      }
+    } on SocketException catch (_){
+      flag = false;
+    }
+    return flag;
+  }
 }

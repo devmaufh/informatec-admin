@@ -20,7 +20,6 @@ class AvisoPageState extends State<AvisoPage> {
   final formKey = GlobalKey<FormState>();
   final scaffoldKey = GlobalKey<ScaffoldState>();
 
-
   AvisoBloc avisosBloc;
   AvisoModel avisoModel = new AvisoModel(
     usrId: '0',
@@ -66,13 +65,15 @@ class AvisoPageState extends State<AvisoPage> {
                 SizedBox(height: 10),
                 _buildPrioritario(),
                 SizedBox(height: 10),
-                SizedBox(width: double.infinity, child:MaterialButton(
-                  child: Text("Guardar"),
-                  onPressed: _submit,
-                  textColor: Colors.red,
-                  hoverColor: Colors.redAccent,
-                ) ,),
-                
+                SizedBox(
+                  width: double.infinity,
+                  child: MaterialButton(
+                    child: Text("Guardar"),
+                    onPressed: _submit,
+                    textColor: Colors.red,
+                    hoverColor: Colors.redAccent,
+                  ),
+                ),
               ],
             ),
           ),
@@ -90,9 +91,9 @@ class AvisoPageState extends State<AvisoPage> {
         prefixIcon: Icon(Icons.title),
       ),
       onSaved: (text) => avisoModel.titulo = text,
-      validator: (title){
-        if(title.length<=1) return 'Ingresa un titulo válido';
-        if(title.length>60) return 'No puedes exceder los 60 caracteres';
+      validator: (title) {
+        if (title.length <= 1) return 'Ingresa un titulo válido';
+        if (title.length > 60) return 'No puedes exceder los 60 caracteres';
         return null;
       },
     );
@@ -107,9 +108,9 @@ class AvisoPageState extends State<AvisoPage> {
       ),
       maxLines: null,
       onSaved: (text) => avisoModel.descripcion = text,
-      validator: (descripcion){
-        if(descripcion.length<=1) return 'Ingresa una descripción válida';
-        if(descripcion.length>255)return 'Descripción demasiado muy larga';
+      validator: (descripcion) {
+        if (descripcion.length <= 1) return 'Ingresa una descripción válida';
+        if (descripcion.length > 255) return 'Descripción demasiado muy larga';
         return null;
       },
     );
@@ -142,8 +143,8 @@ class AvisoPageState extends State<AvisoPage> {
         prefixIcon: Icon(Icons.calendar_today),
       ),
       maxLines: null,
-      validator: (date){
-        if(date.length<=1) return 'Ingresa una fecha válida';
+      validator: (date) {
+        if (date.length <= 1) return 'Ingresa una fecha válida';
         return null;
       },
     );
@@ -178,8 +179,8 @@ class AvisoPageState extends State<AvisoPage> {
         prefixIcon: Icon(Icons.calendar_today),
       ),
       maxLines: null,
-      validator: (date){
-        if(date.length<=1) return 'Ingresa una fecha válida';
+      validator: (date) {
+        if (date.length <= 1) return 'Ingresa una fecha válida';
         return null;
       },
     );
@@ -188,7 +189,7 @@ class AvisoPageState extends State<AvisoPage> {
   Widget _buildFoto(BuildContext context) {
     if (avisoModel.img != null) {
       return GestureDetector(
-        onTapUp: (flag) => pickImage() ,
+        onTapUp: (flag) => pickImage(),
         child: FadeInImage(
           image: NetworkImage("${Consts.API_URL}/images/${avisoModel.img}"),
           placeholder: AssetImage('assets/jar-loading.gif'),
@@ -198,7 +199,7 @@ class AvisoPageState extends State<AvisoPage> {
       );
     } else {
       return GestureDetector(
-        onTapUp: (flag) => pickImage() ,
+        onTapUp: (flag) => pickImage(),
         child: Image(
           image: AssetImage(foto?.path ?? 'assets/no-image.png'),
           height: 250.0,
@@ -207,17 +208,17 @@ class AvisoPageState extends State<AvisoPage> {
       );
     }
   }
-  
-  bool value =true;
-  Widget _buildPrioritario(){
+
+  bool value = true;
+  Widget _buildPrioritario() {
     return Row(
       children: <Widget>[
         Text("Marca la casilla si el mensaje es prioritario"),
         Checkbox(
-          onChanged: (bool val){
+          onChanged: (bool val) {
             print("on cahnged");
             setState(() {
-             value = val; 
+              value = val;
             });
           },
           value: value,
@@ -225,31 +226,52 @@ class AvisoPageState extends State<AvisoPage> {
       ],
     );
   }
-  void pickImage()async{
-    foto = await  ImagePicker.pickImage(source: ImageSource.gallery);
-    if(foto!=null){
+
+  void pickImage() async {
+    foto = await ImagePicker.pickImage(source: ImageSource.gallery);
+    if (foto != null) {
       print("File no es nulo");
       avisoModel.img = null;
     }
     setState(() {});
   }
 
-  void _submit()async{
-    if(!formKey.currentState.validate()) return;
+  void _submit() async {
+    if (!formKey.currentState.validate()) return;
     formKey.currentState.save();
-    var prefs =await SharedPreferences.getInstance();
+    var prefs = await SharedPreferences.getInstance();
     var user_id = prefs.getString(Consts.USER_ID);
     avisoModel.usrId = user_id;
-    avisoModel.prioridad = value? 1:0;
+    avisoModel.prioridad = value ? 1 : 0;
     print(avisoModel.toJson());
 
-
-    if(avisoModel.idAviso==null){
-      avisosBloc.addAviso(avisoModel, foto);
-    }else{
+    if (avisoModel.idAviso == null) {
+      var res = await avisosBloc.addAviso(avisoModel, foto);
+      if (res) {
+        Navigator.pop(context);
+      } else {
+        showDialog(
+          context: context,
+          barrierDismissible: true,
+          builder: (BuildContext context) {
+            return Dialog(
+              child: new Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  SizedBox(height: 25,),
+                  Icon(Icons.error, color: Colors.red,size: 30,),
+                  SizedBox(height: 25,),
+                  new Text("Error al insertar, verifica tu conexión a internet", textAlign: TextAlign.center, style: TextStyle(fontSize: 16),),
+                  SizedBox(height: 25,),
+                ],
+              ),
+            );
+          },
+        );
+      }
+    } else {
       //Editar
     }
-    Navigator.pop(context);        
   }
 }
 
