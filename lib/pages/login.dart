@@ -3,6 +3,7 @@ import 'package:avisos_admin/providers/apiRepository.dart';
 import 'package:avisos_admin/utils/consts.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 
 class LoginPage extends StatelessWidget {
@@ -255,7 +256,8 @@ class LoginPage extends StatelessWidget {
   }
 
   _checkLogin(LoginBloc bloc, BuildContext context) async {
-    print("======BEGIN LOGIN====");
+    bool isLogged = false;
+    Consts.printWithColor('CYAN',"======BEGIN LOGIN====");
     showDialog(
       context: context,
       barrierDismissible: false,
@@ -274,16 +276,39 @@ class LoginPage extends StatelessWidget {
         );
       },
     );
-    
+  
     var response = await ApiRepository().login(
         correo: bloc.correo,
         noTel: bloc.telefono,
         ursId: bloc.user,
         pwd: bloc.pass);
-    var accessToken = response['access_token'];
-    var decodedToken = Consts.parseJWT(accessToken);
-    print(decodedToken['identity']['usrId']);
+    if(response!=null){
+      if(!response.containsKey('access_token')){
+         //pop dialog
+        Scaffold.of(context).showSnackBar(SnackBar(
+          duration: Duration(seconds: 10),
+          content: Text('Usuario inválido'),
+          action: SnackBarAction(
+            textColor: Colors.red,
+            label: 'Aceptar',
+            onPressed: Scaffold.of(context).hideCurrentSnackBar,
+          ),
+        ));
+      }else{
+        var accessToken = response['access_token'];
+        var decodedToken = Consts.parseJWT(accessToken);
+        print(decodedToken['identity']);
+        SharedPreferences prefs = await SharedPreferences.getInstance();
+        await prefs.setString(Consts.USER_ID, decodedToken['identity']['usrId']);
+        await prefs.setString(Consts.USER_NAME, decodedToken['identity']['nomUsr']);
+        await prefs.setString(Consts.USER_PHONE, decodedToken['identity']['noTel']);
+        await prefs.setString(Consts.USER_MAIL, decodedToken['identity']['correo']);
+        await prefs.setString(Consts.USER_TYPE, "${decodedToken['identity']['idTipoUsr']}");
+        isLogged = true;
+      }
+    }
     Navigator.pop(context); //pop dialog
-    print("======END LOGIN====");
+    Consts.printWithColor('CYAN',"======END LOGIN====");
+    if(isLogged) Navigator.pushReplacementNamed(context, 'home');
   }
 }

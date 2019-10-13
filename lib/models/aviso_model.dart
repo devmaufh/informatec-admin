@@ -9,6 +9,7 @@ AvisoModel avisoModelFromJson(String str) => AvisoModel.fromJson(json.decode(str
 String avisoModelToJson(AvisoModel data) => json.encode(data.toJson());
 
 class AvisoModel {
+    int idAviso;
     String img;
     String usrId;
     String titulo;
@@ -18,6 +19,7 @@ class AvisoModel {
     int prioridad;
 
     AvisoModel({
+        this.idAviso,
         this.img,
         this.usrId,
         this.titulo,
@@ -28,6 +30,7 @@ class AvisoModel {
     });
 
     factory AvisoModel.fromJson(Map<String, dynamic> json) => AvisoModel(
+        idAviso: json['idAviso'],
         img: json["img"],
         usrId: json["usrId"],
         titulo: json["titulo"],
@@ -38,6 +41,7 @@ class AvisoModel {
     );
 
     Map<String, dynamic> toJson() => {
+        "idAviso":idAviso,
         "img": img,
         "usrId": usrId,
         "titulo": titulo,

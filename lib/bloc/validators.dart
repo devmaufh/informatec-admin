@@ -35,4 +35,19 @@ class Validators {
       else sink.addError('Ingresa un número válido');
     }
   );
+
+  final validateTitulo60 = StreamTransformer<String,String>.fromHandlers(
+    handleData: (titulo,sink){
+      if(titulo.length==0) sink.addError('Ingresa un titulo válido');
+      if(titulo.length>60) sink.addError('No puedes exceder los 60 caracteres');
+    }
+  );
+  final validateDescripcion255 = StreamTransformer<String,String>.fromHandlers(
+    handleData: (titulo,sink){
+      if(titulo.length==0) sink.addError('Ingresa un titulo válido');
+      if(titulo.length>255) sink.addError('No puedes exceder los 255 caracteres');
+    }
+  );
+  
+  
 }

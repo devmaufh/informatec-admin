@@ -15,10 +15,10 @@ class ApiRepository {
   Future<Map<String, dynamic>> login(
       {String ursId, String pwd, String noTel, String correo}) async {
     var data = {
-      "usrId": "rfc1",
-      "pwd": "aspapdsp",
-      "noTel": "1234567897",
-      "correo": "actualizado@gmail.com"
+      "usrId": ursId,
+      "pwd": pwd,
+      "noTel": noTel,
+      "correo": correo
     };
     final request = await http.post(
       "${Consts.API_URL}/login",
